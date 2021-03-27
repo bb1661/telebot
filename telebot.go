@@ -40,7 +40,7 @@ func main() {
 			Text := update.Message.Text
 
 			if Text == "bb" { //стоп бот
-				Text = "22"
+				Text = "test"
 				botStop = true
 			}
 
