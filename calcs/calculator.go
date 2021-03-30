@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-func TTT() {
+func Test() {
 	fmt.Println("Done")
 }
 
