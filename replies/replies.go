@@ -12,7 +12,8 @@ func Help() (msg string) {
 	return `Доступные команды: 
 	/login
 	/help
-	/calculator`
+	/calculator
+	`
 }
 
 func CalculatorInit() (msg string) {
