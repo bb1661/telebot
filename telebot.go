@@ -85,50 +85,52 @@ func main() {
 				}
 
 			case ptext == "Добавить маржу, добавить НДС":
-				if price, err := strconv.ParseFloat(value(Text), 64); err == nil {
+				message = tgbotapi.NewMessage(ChatID, "here")
+				bot.Send(message)
+				if price, err := strconv.ParseFloat(Text, 64); err == nil {
 					price, _ = calc.Marjin(price, 0.3, true)
 					price, _ = calc.Vat(price, 0.2, true)
 					msg = fmt.Sprintf("%f", price)
+
 				}
 			case ptext == "Добавить маржу, убрать НДС":
-				if price, err := strconv.ParseFloat(value(Text), 64); err == nil {
+				if price, err := strconv.ParseFloat(Text, 64); err == nil {
 					price, _ = calc.Marjin(price, 0.3, true)
 					price, _ = calc.Vat(price, 0.2, false)
 					msg = fmt.Sprintf("%f", price)
 				}
 			case ptext == "Убрать маржу, добавить НДС":
-				if price, err := strconv.ParseFloat(value(Text), 64); err == nil {
+				if price, err := strconv.ParseFloat(Text, 64); err == nil {
 					price, _ = calc.Marjin(price, 0.3, false)
 					price, _ = calc.Vat(price, 0.2, true)
 					msg = fmt.Sprintf("%f", price)
 				}
 			case ptext == "Убрать маржу, убрать НДС":
-				if price, err := strconv.ParseFloat(value(Text), 64); err == nil {
+				if price, err := strconv.ParseFloat(Text, 64); err == nil {
 					price, _ = calc.Marjin(price, 0.3, false)
 					price, _ = calc.Vat(price, 0.2, false)
 					msg = fmt.Sprintf("%f", price)
 				}
 			case ptext == "Добавить маржу":
-				if price, err := strconv.ParseFloat(value(Text), 64); err == nil {
+				if price, err := strconv.ParseFloat(Text, 64); err == nil {
 					price, _ = calc.Marjin(price, 0.3, true)
 					msg = fmt.Sprintf("%f", price)
 				}
 			case ptext == "Убрать маржу":
-				if price, err := strconv.ParseFloat(value(Text), 64); err == nil {
+				if price, err := strconv.ParseFloat(Text, 64); err == nil {
 					price, _ = calc.Marjin(price, 0.3, false)
 					msg = fmt.Sprintf("%f", price)
 				}
 			case ptext == "Добавить НДС":
-				if price, err := strconv.ParseFloat(value(Text), 64); err == nil {
+				if price, err := strconv.ParseFloat(Text, 64); err == nil {
 					price, _ = calc.Vat(price, 0.2, true)
 					msg = fmt.Sprintf("%f", price)
 				}
 			case ptext == "Убрать НДС":
-				if price, err := strconv.ParseFloat(value(Text), 64); err == nil {
+				if price, err := strconv.ParseFloat(Text, 64); err == nil {
 					price, _ = calc.Vat(price, 0.2, false)
 					msg = fmt.Sprintf("%f", price)
 				}
-
 			case Text == "/help":
 				msg = rp.Help()
 
@@ -166,14 +168,5 @@ func main() {
 
 		}
 
-	}
-}
-
-func value(text string) (val string) {
-	if i := strings.IndexByte(text, ' '); i >= 0 {
-		s := text[(i + 1):]
-		return s
-	} else {
-		return "error getting value"
 	}
 }
