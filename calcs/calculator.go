@@ -3,45 +3,74 @@ package calculator
 import (
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
 )
 
 func Test() {
 	fmt.Println("Done")
 }
 
-func main() {
-	var price float64
-	var plusMinusVat bool = true
-	var plusMinusMarjin bool = true
-	var calcVariables map[string]float64 = map[string]float64{
-		"Vat":    0.2,
-		"Marjin": 0.3,
+func NeedCalc(price string, command string, vat float64, marjin float64) string {
+	var msg string
+	switch {
+
+	case strings.HasPrefix("/calculator Добавить маржу, добавить НДС ", command):
+		price = strings.Replace(price, "/calculator Добавить маржу, убрать НДС ", "", -1)
+		if price, err := strconv.ParseFloat(price, 64); err == nil {
+			price, _ = Marjin(price, 0.3, true)
+			price, _ = Vat(price, 0.2, true)
+			msg = fmt.Sprintf("%f", price)
+		}
+	case strings.HasPrefix("/calculator Добавить маржу, убрать НДС ", command):
+		price = strings.Replace(price, "/calculator Добавить маржу, убрать НДС ", "", -1)
+		if price, err := strconv.ParseFloat(price, 64); err == nil {
+			price, _ = Marjin(price, 0.3, true)
+			price, _ = Vat(price, 0.2, false)
+			msg = fmt.Sprintf("%f", price)
+		}
+	case strings.HasPrefix("/calculator Убрать маржу, добавить НДС ", command):
+		price = strings.Replace(price, "/calculator Убрать маржу, добавить НДС ", "", -1)
+		if price, err := strconv.ParseFloat(price, 64); err == nil {
+			price, _ = Marjin(price, 0.3, false)
+			price, _ = Vat(price, 0.2, true)
+			msg = fmt.Sprintf("%f", price)
+		}
+	case strings.HasPrefix("/calculator Убрать маржу, убрать НДС ", command):
+		price = strings.Replace(price, "/calculator Убрать маржу, убрать НДС ", "", -1)
+		if price, err := strconv.ParseFloat(price, 64); err == nil {
+			price, _ = Marjin(price, 0.3, false)
+			price, _ = Vat(price, 0.2, false)
+			msg = fmt.Sprintf("%f", price)
+		}
+	case strings.HasPrefix("/calculator Добавить маржу ", command):
+		price = strings.Replace(price, "/calculator Добавить маржу ", "", -1)
+
+		if price, err := strconv.ParseFloat(price, 64); err == nil {
+			price, _ = Marjin(price, 0.3, true)
+			msg = fmt.Sprintf("%f", price)
+		}
+	case strings.HasPrefix("/calculator Убрать маржу ", command):
+		price = strings.Replace(price, "/calculator Убрать маржу ", "", -1)
+		if price, err := strconv.ParseFloat(price, 64); err == nil {
+			price, _ = Marjin(price, 0.3, false)
+			msg = fmt.Sprintf("%f", price)
+		}
+	case strings.HasPrefix("/calculator Добавить НДС ", command):
+		price = strings.Replace(price, "/calculator Добавить НДС ", "", -1)
+		if price, err := strconv.ParseFloat(price, 64); err == nil {
+			price, _ = Vat(price, 0.2, true)
+			msg = fmt.Sprintf("%f", price)
+		}
+	case strings.HasPrefix("/calculator Убрать НДС ", command):
+		price = strings.Replace(price, "/calculator Убрать НДС ", "", -1)
+		if price, err := strconv.ParseFloat(price, 64); err == nil {
+			price, _ = Vat(price, 0.2, false)
+			msg = fmt.Sprintf("%f", price)
+		}
 	}
+	return msg
 
-	//fmt.Println(Vat(price, plusMinusVat))
-	price = 100
-	priceAfterVat, _ := Vat(price, calcVariables["Vat"], plusMinusVat)
-	_, VatAmount := Vat(price, calcVariables["Vat"], plusMinusVat)
-
-	priceAfterMarjin, MarjinAmount := Marjin(price, calcVariables["Marjin"], plusMinusMarjin)
-
-	if plusMinusVat {
-		fmt.Println("Цена с НДС: ", priceAfterVat)
-		fmt.Println("Размер НДС: ", VatAmount)
-	} else {
-		fmt.Println("Цена без НДС: ", priceAfterVat)
-		fmt.Println("Размер НДС: ", VatAmount)
-	}
-
-	if plusMinusMarjin {
-		fmt.Println("Цена с маржой: ", priceAfterMarjin)
-		fmt.Println("Размер маржи: ", MarjinAmount)
-	} else {
-		fmt.Println("Цена без маржи: ", priceAfterMarjin)
-		fmt.Println("Размер маржи: ", MarjinAmount)
-	}
-
-	//fmt.Println("Vat")
 }
 
 func Vat(price float64, VatValue float64, plusMinus bool) (float64, float64) { //Добавить ндс true, убрать false. Возврат цена с/без ндс , размер ндс

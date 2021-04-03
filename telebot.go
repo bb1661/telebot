@@ -7,6 +7,7 @@ import (
 	"strings"
 	calc "telebot2/calcs"
 	kb "telebot2/keyboards"
+	maps "telebot2/maps"
 	rp "telebot2/replies"
 	sql "telebot2/sql"
 
@@ -16,12 +17,140 @@ import (
 var msg string   // Сообщение для отправки
 var ptext string // previous message - предыдущая полученная команда
 
+/*
+type fn func()
+
+func foo_login() {
+	log.Printf("foo! Message is login")
+}
+func foo_help() {
+	log.Printf("foo! Message is help")
+}
+func foo_calculator() {
+	log.Printf("foo! Message is calculator")
+}
+
+func bar(msg string) {
+	log.Printf("bar! Message is %s", msg)
+}
+*/
+
 func main() {
+	//Тесты подключения различных модулей + неудаление того, что пригодится
 	botStop := false
 	calc.Test()
 	sql.Test()
 	rp.Test()
+	maps.Test()
 
+	// подключаемся к боту с помощью токена
+	bot, err := tgbotapi.NewBotAPI("1756611769:AAEHSoOCzhHmsU--r3fDPsCVYMvi5DKaDec")
+	if err != nil {
+		log.Panic(err)
+	}
+	bot.Debug = true
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	// инициализируем канал, куда будут прилетать обновления от API
+	var ucfg tgbotapi.UpdateConfig = tgbotapi.NewUpdate(0)
+	ucfg.Timeout = 60
+	upd, _ := bot.GetUpdatesChan(ucfg)
+
+	// читаем обновления из канала
+	for !botStop {
+		select {
+
+		case update := <-upd:
+			// Пользователь, который написал боту
+			UserName := update.Message.From.UserName
+			reply := ""
+			var command string
+			// ID чата/диалога.
+			// Может быть идентификатором как чата с пользователем
+			// (тогда он равен UserID) так и публичного чата/канала
+			ChatID := update.Message.Chat.ID
+			message := tgbotapi.NewMessage(ChatID, reply)
+
+			// Текст сообщения
+			Text := update.Message.Text
+
+			/*
+				   paramStr := ""
+					f := map[string]fn{
+						"/login":      foo_login,
+						"/help":       foo_help,
+						"/calculator": foo_calculator,
+						"/calculator/addMarjin": calc.Marjin(),
+					}
+
+					f[Text]()
+
+			*/
+
+			//Сборка команды с путем
+			log.Printf("[%s] %d %s", UserName, ChatID, Text)
+			addKb := tgbotapi.MessageConfig{}
+			if maps.CommandLeveling[Text] {
+				command = ptext + " " + Text
+			} else {
+				command = Text
+			}
+
+			//Вывод команды
+			message = tgbotapi.NewMessage(ChatID, "Введена команда: "+command)
+			bot.Send(message)
+
+			switch {
+			/*
+				добавить марки и описать их
+				в первую очередь свитч должен проходить по маркам.
+
+			*/
+
+			case strings.HasPrefix("/calculator ", command):
+				msg = "Введите цену"
+			case Text == "/help":
+				msg = rp.Help()
+			case command == "/calculator":
+				msg = rp.CalculatorInit()
+				addKb.ReplyMarkup = kb.CalcKb
+			case command == "/testsql ":
+				sql.Test()
+			case command == "/testrep ":
+				rp.Test()
+			case command == "/testcalc ":
+				calc.Test()
+			case command == "/testkeyboards ":
+				kb.Test()
+			case command == "/testbuttons":
+				addKb.ReplyMarkup = kb.NumericKeyboard
+			case command == "":
+
+			case command == "bb": //стоп бот
+				botStop = true
+				msg = "Бот остановлен, бб"
+			default:
+				msg = "Неизвестная команда. Для помощи /help"
+			}
+
+			ptext = Text
+			reply = msg
+			// Созадаем сообщение
+			message = tgbotapi.NewMessage(ChatID, reply)
+			message.ReplyMarkup = addKb.ReplyMarkup
+			bot.Send(message)
+
+		}
+
+	}
+}
+
+func old_main() {
+	botStop := false
+	calc.Test()
+	sql.Test()
+	rp.Test()
+	maps.Test()
 	// подключаемся к боту с помощью токена
 	bot, err := tgbotapi.NewBotAPI("1756611769:AAEHSoOCzhHmsU--r3fDPsCVYMvi5DKaDec")
 	if err != nil {
@@ -55,7 +184,7 @@ func main() {
 			Text := update.Message.Text
 			//key.ReplyMarkup = ""
 			log.Printf("[%s] %d %s", UserName, ChatID, Text)
-			answerMessage := tgbotapi.MessageConfig{}
+			addKb := tgbotapi.MessageConfig{}
 
 			switch {
 			case ptext == "/calculator":
@@ -136,7 +265,7 @@ func main() {
 
 			case Text == "/calculator":
 				msg = rp.CalculatorInit()
-				answerMessage.ReplyMarkup = kb.CalcKb
+				addKb.ReplyMarkup = kb.CalcKb
 
 			case Text == "/testsql ":
 				sql.Test()
@@ -147,7 +276,7 @@ func main() {
 			case Text == "/testkeyboards ":
 				kb.Test()
 			case Text == "/testbuttons":
-				answerMessage.ReplyMarkup = kb.NumericKeyboard
+				addKb.ReplyMarkup = kb.NumericKeyboard
 			case Text == "bb": //стоп бот
 				botStop = true
 				msg = "Бот остановлен, бб"
@@ -159,7 +288,7 @@ func main() {
 			reply = msg
 			// Созадаем сообщение
 			message = tgbotapi.NewMessage(ChatID, reply)
-			message.ReplyMarkup = answerMessage.ReplyMarkup
+			message.ReplyMarkup = addKb.ReplyMarkup
 			bot.Send(message)
 
 			//message := tgbotapi.NewMessage(ChatID, reply)
