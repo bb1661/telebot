@@ -13,63 +13,80 @@ func Test() {
 
 func NeedCalc(command string, vat float64, marjin float64) string {
 	var msg string
+
+	var mValue float64
+	var VatValue float64
+	var text string
+	command = strings.ReplaceAll(command, ",", ".")
 	switch {
 
-	case strings.HasPrefix("/calculator Добавить маржу, добавить НДС ", command):
-		command = strings.Replace(command, "/calculator Добавить маржу, убрать НДС ", "", -1)
+	case strings.HasPrefix(command, "/calculator Добавить маржу, добавить НДС "):
+		command = strings.ReplaceAll(command, "/calculator Добавить маржу, убрать НДС ", "")
 		if command, err := strconv.ParseFloat(command, 64); err == nil {
-			command, _ = Marjin(command, 0.3, true)
-			command, _ = Vat(command, 0.2, true)
-			msg = fmt.Sprintf("%f", command)
+
+			command, mValue = Marjin(command, 0.3, true)
+
+			command, VatValue = Vat(command, 0.2, true)
+			msg = fmt.Sprintf("%f", math.Ceil(command*100)/100)
 		}
-	case strings.HasPrefix("/calculator Добавить маржу, убрать НДС ", command):
-		command = strings.Replace(command, "/calculator Добавить маржу, убрать НДС ", "", -1)
+	case strings.HasPrefix(command, "/calculator Добавить маржу, убрать НДС "):
+		command = strings.ReplaceAll(command, "/calculator Добавить маржу, убрать НДС ", "")
 		if command, err := strconv.ParseFloat(command, 64); err == nil {
-			command, _ = Marjin(command, 0.3, true)
-			command, _ = Vat(command, 0.2, false)
-			msg = fmt.Sprintf("%f", command)
+			command, mValue = Marjin(command, 0.3, true)
+			command, VatValue = Vat(command, 0.2, false)
+			msg = fmt.Sprintf("%f", math.Ceil(command*100)/100)
 		}
-	case strings.HasPrefix("/calculator Убрать маржу, добавить НДС ", command):
-		command = strings.Replace(command, "/calculator Убрать маржу, добавить НДС ", "", -1)
+	case strings.HasPrefix(command, "/calculator Убрать маржу, добавить НДС "):
+		command = strings.ReplaceAll(command, "/calculator Убрать маржу, добавить НДС ", "")
 		if command, err := strconv.ParseFloat(command, 64); err == nil {
-			command, _ = Marjin(command, 0.3, false)
-			command, _ = Vat(command, 0.2, true)
-			msg = fmt.Sprintf("%f", command)
+			command, mValue = Marjin(command, 0.3, false)
+			command, VatValue = Vat(command, 0.2, true)
+			msg = fmt.Sprintf("%f", math.Ceil(command*100)/100)
 		}
-	case strings.HasPrefix("/calculator Убрать маржу, убрать НДС ", command):
-		command = strings.Replace(command, "/calculator Убрать маржу, убрать НДС ", "", -1)
+	case strings.HasPrefix(command, "/calculator Убрать маржу, убрать НДС "):
+		command = strings.ReplaceAll(command, "/calculator Убрать маржу, убрать НДС ", "")
 		if command, err := strconv.ParseFloat(command, 64); err == nil {
-			command, _ = Marjin(command, 0.3, false)
-			command, _ = Vat(command, 0.2, false)
-			msg = fmt.Sprintf("%f", command)
+			command, mValue = Marjin(command, 0.3, false)
+			command, VatValue = Vat(command, 0.2, false)
+			msg = fmt.Sprintf("%f", math.Ceil(command*100)/100)
 		}
-	case strings.HasPrefix("/calculator Добавить маржу ", command):
-		command = strings.Replace(command, "/calculator Добавить маржу ", "", -1)
+	case strings.HasPrefix(command, "/calculator Добавить маржу "):
+		command = strings.ReplaceAll(command, "/calculator Добавить маржу ", "")
 
 		if command, err := strconv.ParseFloat(command, 64); err == nil {
-			command, _ = Marjin(command, 0.3, true)
-			msg = fmt.Sprintf("%f", command)
+			command, mValue = Marjin(command, 0.3, true)
+			msg = fmt.Sprintf("%f", math.Ceil(command*100)/100)
 		}
-	case strings.HasPrefix("/calculator Убрать маржу ", command):
-		command = strings.Replace(command, "/calculator Убрать маржу ", "", -1)
+	case strings.HasPrefix(command, "/calculator Убрать маржу "):
+		command = strings.ReplaceAll(command, "/calculator Убрать маржу ", "")
 		if command, err := strconv.ParseFloat(command, 64); err == nil {
-			command, _ = Marjin(command, 0.3, false)
-			msg = fmt.Sprintf("%f", command)
+			command, mValue = Marjin(command, 0.3, false)
+			msg = fmt.Sprintf("%f", math.Ceil(command*100)/100)
 		}
-	case strings.HasPrefix("/calculator Добавить НДС ", command):
-		command = strings.Replace(command, "/calculator Добавить НДС ", "", -1)
+	case strings.HasPrefix(command, "/calculator Добавить НДС "):
+		command = strings.ReplaceAll(command, "/calculator Добавить НДС ", "")
 		if command, err := strconv.ParseFloat(command, 64); err == nil {
-			command, _ = Vat(command, 0.2, true)
-			msg = fmt.Sprintf("%f", command)
+			command, VatValue = Vat(command, 0.2, true)
+			msg = fmt.Sprintf("%f", math.Ceil(command*100)/100)
 		}
-	case strings.HasPrefix("/calculator Убрать НДС ", command):
-		command = strings.Replace(command, "/calculator Убрать НДС ", "", -1)
+	case strings.HasPrefix(command, "/calculator Убрать НДС "):
+		command = strings.ReplaceAll(command, "/calculator Убрать НДС ", "")
 		if command, err := strconv.ParseFloat(command, 64); err == nil {
-			command, _ = Vat(command, 0.2, false)
-			msg = fmt.Sprintf("%f", command)
+			command, VatValue = Vat(command, 0.2, false)
+			msg = fmt.Sprintf("%f", math.Ceil(command*100)/100)
 		}
+
+	default:
+		msg = "Команда с ошибкой"
 	}
-	return msg
+
+	if VatValue != 0 {
+		text = text + " В том числе НДС: " + fmt.Sprintf("%f", math.Ceil(VatValue*100)/100) + "\n"
+	}
+	if mValue != 0 {
+		text = text + " В том числе маржа: " + fmt.Sprintf("%f", math.Ceil(mValue*100)/100) + "\n"
+	}
+	return ("Итоговая цена: " + msg + text)
 
 }
 
@@ -84,7 +101,7 @@ func Vat(command float64, VatValue float64, plusMinus bool) (float64, float64) {
 		VatAmount = command * VatValue
 	}
 
-	return math.Ceil(command*100) / 100, math.Ceil(VatAmount*100) / 100
+	return command, VatAmount
 }
 
 func Marjin(command float64, MarjinValue float64, plusMinus bool) (float64, float64) { //Добавить Marjin true, убрать false. Возврат цена с/без маржм , размер маржи
@@ -101,5 +118,5 @@ func Marjin(command float64, MarjinValue float64, plusMinus bool) (float64, floa
 
 	}
 
-	return math.Ceil(command*100) / 100, math.Ceil(MarjinAmount*100) / 100
+	return command, MarjinAmount
 }
