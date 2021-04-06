@@ -26,6 +26,7 @@ var CommandLeveling map[string]bool = map[string]bool{
 	"/calculator Убрать маржу":                 true,
 	"/calculator Добавить НДС":                 true,
 	"/calculator Убрать НДС":                   true,
+	"/calculator":                              true,
 }
 
 var Marks map[string]string = map[string]string{

@@ -42,6 +42,8 @@ func main() {
 	sql.Test()
 	rp.Test()
 	maps.Test()
+	tag := "menu"
+	var command string
 
 	// подключаемся к боту с помощью токена
 	bot, err := tgbotapi.NewBotAPI("1756611769:AAEHSoOCzhHmsU--r3fDPsCVYMvi5DKaDec")
@@ -64,7 +66,7 @@ func main() {
 			// Пользователь, который написал боту
 			UserName := update.Message.From.UserName
 			reply := ""
-			var command string
+
 			// ID чата/диалога.
 			// Может быть идентификатором как чата с пользователем
 			// (тогда он равен UserID) так и публичного чата/канала
@@ -90,47 +92,62 @@ func main() {
 			//Сборка команды с путем
 			log.Printf("[%s] %d %s", UserName, ChatID, Text)
 			addKb := tgbotapi.MessageConfig{}
-			if maps.CommandLeveling[Text] {
-				command = ptext + " " + Text
+
+			if maps.CommandLeveling[command] {
+				command = command + " " + Text
 			} else {
 				command = Text
 			}
 
 			//Вывод команды
-			message = tgbotapi.NewMessage(ChatID, "Введена команда: "+command)
+			message = tgbotapi.NewMessage(ChatID, "| Введена команда: "+command+" | Tag: "+tag)
 			bot.Send(message)
 
 			switch {
 			/*
-				добавить марки и описать их
+				добавить тэги и описать их
 				в первую очередь свитч должен проходить по маркам.
 
 			*/
-
-			case strings.HasPrefix("/calculator ", command):
+			case tag == "calc/needCalc":
+				msg = calc.NeedCalc(command, 0.2, 0.3)
+				tag = "menu"
+			case tag == "calc/needPrice":
 				msg = "Введите цену"
-			case Text == "/help":
-				msg = rp.Help()
-			case command == "/calculator":
-				msg = rp.CalculatorInit()
-				addKb.ReplyMarkup = kb.CalcKb
-			case command == "/testsql ":
-				sql.Test()
-			case command == "/testrep ":
-				rp.Test()
-			case command == "/testcalc ":
-				calc.Test()
-			case command == "/testkeyboards ":
-				kb.Test()
-			case command == "/testbuttons":
-				addKb.ReplyMarkup = kb.NumericKeyboard
-			case command == "":
-
-			case command == "bb": //стоп бот
-				botStop = true
-				msg = "Бот остановлен, бб"
+				tag = "calc/needCalc"
 			default:
-				msg = "Неизвестная команда. Для помощи /help"
+
+				switch {
+
+				case Text == "/help":
+					msg = rp.Help()
+				case command == "/calculator":
+					msg = rp.CalculatorInit()
+					addKb.ReplyMarkup = kb.CalcKb
+					tag = "calc/needPrice"
+				case command == "/testsql":
+					sql.Test()
+				case command == "/testrep":
+					rp.Test()
+				case command == "/testcalc":
+					calc.Test()
+				case command == "/testkeyboards":
+					kb.Test()
+				case command == "/testkeyboards2":
+					addKb.ReplyMarkup = kb.InlineKeyboard
+					msg = "тест кб"
+				case command == "/testbuttons":
+					addKb.ReplyMarkup = kb.NumericKeyboard
+				case command == "":
+
+				case command == "bb": //стоп бот
+					botStop = true
+					msg = "Бот остановлен, бб"
+				default:
+					tag = "menu"
+					msg = "Неизвестная команда. Для помощи /help"
+				}
+
 			}
 
 			ptext = Text
@@ -297,5 +314,43 @@ func old_main() {
 
 		}
 
+	}
+}
+
+func main_test_inlinekb() {
+	bot, err := tgbotapi.NewBotAPI("MyAwesomeBotToken")
+	if err != nil {
+		log.Panic(err)
+	}
+
+	bot.Debug = true
+
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+
+	updates, _ := bot.GetUpdatesChan(u)
+
+	fmt.Print(".")
+	for update := range updates {
+		if update.CallbackQuery != nil {
+			fmt.Print(update)
+
+			bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, update.CallbackQuery.Data))
+
+			bot.Send(tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data))
+		}
+		if update.Message != nil {
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+
+			switch update.Message.Text {
+			case "open":
+				msg.ReplyMarkup = kb.InlineKeyboard
+
+			}
+
+			bot.Send(msg)
+		}
 	}
 }
