@@ -115,6 +115,7 @@ func main() {
 			case tag == "calc/needPrice":
 				msg = "Введите цену"
 				tag = "calc/needCalc"
+				addKb.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 			default:
 
 				switch {
