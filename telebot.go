@@ -144,6 +144,8 @@ func main() {
 				case command == "bb": //стоп бот
 					botStop = true
 					msg = "Бот остановлен, бб"
+				case command == "/login":
+					_, _, msg = sql.Login(fmt.Sprintf("%v", ChatID))
 				default:
 					tag = "menu"
 					msg = "Неизвестная команда. Для помощи /help"

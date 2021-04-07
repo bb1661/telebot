@@ -5,7 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
+
+	//"log"
 
 	_ "github.com/denisenkom/go-mssqldb"
 )
@@ -21,6 +22,7 @@ func Test() {
 	fmt.Println("Done")
 }
 
+/*
 func main() {
 
 	fmt.Println("Server: ", server)
@@ -77,6 +79,7 @@ func main() {
 	fmt.Printf("Deleted %d row(s) successfully.\n", deletedRows)
 
 }
+*/
 
 // CreateEmployee inserts an employee record
 func CreateEmployee(name string, location string) (int64, error) {
@@ -205,5 +208,51 @@ func DeleteEmployee(name string) (int64, error) {
 }
 
 func FirstLogin(clientId string) {
+
+}
+
+func Login(ChatID string) (int64, error, string) {
+	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
+		server, user, password, port, database)
+	var err error
+	// Create connection pool
+	db, err = sql.Open("sqlserver", connString)
+	ctx := context.Background()
+
+	// Check if database is alive.
+	err = db.PingContext(ctx)
+	if err != nil {
+		return -1, err, "error1"
+	}
+
+	tsql := fmt.Sprintf("SELECT COUNT(*) [ChatID] FROM [test_user].[dbo].[profile] where [ChatID]='" + ChatID + "'")
+
+	// Execute query
+	rows, err := db.QueryContext(ctx, tsql)
+	if err != nil {
+		return -1, err, "error2"
+	}
+
+	defer rows.Close()
+
+	var count int
+	var profileExists int
+	// Iterate through the result set.
+	for rows.Next() {
+		var profileExists int
+		// Get values from row.
+		err := rows.Scan(&profileExists)
+		if err != nil {
+			return -1, err, "error3"
+		}
+
+		count++
+	}
+
+	if profileExists != 0 {
+		return -1, err, "Exists"
+	} else {
+		return -1, err, "Not exists"
+	}
 
 }
