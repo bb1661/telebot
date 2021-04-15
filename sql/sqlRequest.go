@@ -22,67 +22,7 @@ func Test() {
 	fmt.Println("Done")
 }
 
-/*
-func main() {
-
-	fmt.Println("Server: ", server)
-	fmt.Println("port: ", port)
-	fmt.Println("user: ", user)
-	// fmt.Println("password: ", password)
-	fmt.Println("database: ", database)
-
-	// Build connection string
-	//connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-
-	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
-	var err error
-	// Create connection pool
-	db, err = sql.Open("sqlserver", connString)
-
-	if err != nil {
-		log.Fatal("Error creating connection pool: ", err.Error())
-	}
-	ctx := context.Background()
-	err = db.PingContext(ctx)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	fmt.Printf("Connected!\n")
-
-	// Create employee
-	createID, err := CreateEmployee("Jake", "United States")
-	if err != nil {
-		log.Fatal("Error creating Employee: ", err.Error())
-	}
-	fmt.Printf("Inserted ID: %d successfully.\n", createID)
-
-	// Read employees
-	count, err := ReadEmployees()
-	if err != nil {
-		log.Fatal("Error reading Employees: ", err.Error())
-	}
-	fmt.Printf("Read %d row(s) successfully.\n", count)
-
-	// Update from database
-	updatedRows, err := UpdateEmployee("Jake", "Poland")
-	if err != nil {
-		log.Fatal("Error updating Employee: ", err.Error())
-	}
-	fmt.Printf("Updated %d row(s) successfully.\n", updatedRows)
-
-	// Delete from database
-	deletedRows, err := DeleteEmployee("Jake")
-	if err != nil {
-		log.Fatal("Error deleting Employee: ", err.Error())
-	}
-	fmt.Printf("Deleted %d row(s) successfully.\n", deletedRows)
-
-}
-*/
-
-// CreateEmployee inserts an employee record
-func CreateEmployee(name string, location string) (int64, error) {
+func CreateUser(name string, location string, email string) (int64, error) {
 	ctx := context.Background()
 	var err error
 
@@ -98,7 +38,7 @@ func CreateEmployee(name string, location string) (int64, error) {
 	}
 
 	tsql := `
-      INSERT INTO [test_user].[dbo].[profile] (Name, Location) VALUES (@Name, @Location);
+      INSERT INTO [dbo].[profile] (Name, Location, email) VALUES (@Name, @Location,@email);
       select isNull(SCOPE_IDENTITY(), -1);
     `
 
@@ -111,7 +51,9 @@ func CreateEmployee(name string, location string) (int64, error) {
 	row := stmt.QueryRowContext(
 		ctx,
 		sql.Named("Name", name),
-		sql.Named("Location", location))
+		sql.Named("Location", location),
+		sql.Named("email", email),
+	)
 	var newID int64
 	err = row.Scan(&newID)
 	if err != nil {
@@ -121,8 +63,7 @@ func CreateEmployee(name string, location string) (int64, error) {
 	return newID, nil
 }
 
-// ReadEmployees reads all employee records
-func ReadEmployees() (int, error) {
+func ReadUser() (int, error) {
 	ctx := context.Background()
 
 	// Check if database is alive.
@@ -131,7 +72,7 @@ func ReadEmployees() (int, error) {
 		return -1, err
 	}
 
-	tsql := fmt.Sprintf("SELECT Id, Name, Location FROM TestSchema.Employees;")
+	tsql := fmt.Sprintf("SELECT Id, Name, Location FROM [test_user].[dbo].[profile];")
 
 	// Execute query
 	rows, err := db.QueryContext(ctx, tsql)
@@ -161,8 +102,7 @@ func ReadEmployees() (int, error) {
 	return count, nil
 }
 
-// UpdateEmployee updates an employee's information
-func UpdateEmployee(name string, location string) (int64, error) {
+func CheckUser(ChatID string) (int, error) {
 	ctx := context.Background()
 
 	// Check if database is alive.
@@ -171,88 +111,43 @@ func UpdateEmployee(name string, location string) (int64, error) {
 		return -1, err
 	}
 
-	tsql := fmt.Sprintf("UPDATE TestSchema.Employees SET Location = @Location WHERE Name = @Name")
-
-	// Execute non-query with named parameters
-	result, err := db.ExecContext(
-		ctx,
-		tsql,
-		sql.Named("Location", location),
-		sql.Named("Name", name))
-	if err != nil {
-		return -1, err
-	}
-
-	return result.RowsAffected()
-}
-
-// DeleteEmployee deletes an employee from the database
-func DeleteEmployee(name string) (int64, error) {
-	ctx := context.Background()
-
-	// Check if database is alive.
-	err := db.PingContext(ctx)
-	if err != nil {
-		return -1, err
-	}
-
-	tsql := fmt.Sprintf("DELETE FROM TestSchema.Employees WHERE Name = @Name;")
-
-	// Execute non-query with named parameters
-	result, err := db.ExecContext(ctx, tsql, sql.Named("Name", name))
-	if err != nil {
-		return -1, err
-	}
-
-	return result.RowsAffected()
-}
-
-func FirstLogin(clientId string) {
-
-}
-
-func Login(ChatID string) (int64, error, string) {
-	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
-	var err error
-	// Create connection pool
-	db, err = sql.Open("sqlserver", connString)
-	ctx := context.Background()
-
-	// Check if database is alive.
-	err = db.PingContext(ctx)
-	if err != nil {
-		return -1, err, "error1"
-	}
-
-	tsql := fmt.Sprintf("SELECT COUNT(*) [ChatID] FROM [test_user].[dbo].[profile] where [ChatID]='" + ChatID + "'")
+	tsql := fmt.Sprintf("SELECT count(*) FROM [test_user].[dbo].[profile] where ChatID='%q'", ChatID)
 
 	// Execute query
 	rows, err := db.QueryContext(ctx, tsql)
 	if err != nil {
-		return -1, err, "error2"
+		return -1, err
 	}
 
 	defer rows.Close()
 
-	var count int
-	var profileExists int
 	// Iterate through the result set.
-	for rows.Next() {
-		var profileExists int
-		// Get values from row.
-		err := rows.Scan(&profileExists)
-		if err != nil {
-			return -1, err, "error3"
+
+	/*
+		for rows.Next() {
+			var name, location string
+			var id int
+
+			// Get values from row.
+			err := rows.Scan(&id, &name, &location)
+			if err != nil {
+				return -1, err
+			}
+
+			fmt.Printf("ID: %d, Name: %s, Location: %s\n", id, name, location)
+			count++
 		}
-
-		count++
+	*/
+	var profileExists int
+	// Get values from row.
+	err = rows.Scan(&profileExists)
+	if err != nil {
+		return -1, err
 	}
-
 	if profileExists != 0 {
-		return -1, err, "Exists"
+		return 1, err // 1 = exists
 	} else {
-		return -1, err, "Not exists"
+		return 0, err // 0 = not exists
 	}
-
+	//return -1, nil
 }

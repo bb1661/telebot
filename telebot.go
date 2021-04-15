@@ -116,6 +116,14 @@ func main() {
 				msg = "Введите цену"
 				tag = "calc/needCalc"
 				addKb.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+			case tag == "login/pasteSQL":
+
+				_, err = sql.CreateUser("test", fmt.Sprintf("%v", ChatID), command)
+				if err != nil {
+					log.Fatal("Error creating Employee: ", err.Error())
+				}
+				msg = "user created"
+				tag = "menu"
 			default:
 
 				switch {
@@ -145,7 +153,12 @@ func main() {
 					botStop = true
 					msg = "Бот остановлен, бб"
 				case command == "/login":
-					_, _, msg = sql.Login(fmt.Sprintf("%v", ChatID))
+					//_, _, msg = sql.Login(fmt.Sprintf("%v", ChatID))
+					if msg == "Not exists" {
+						msg = "Необходим логин. Введите почту."
+						tag = "login/pasteSQL"
+					}
+
 				default:
 					tag = "menu"
 					msg = "Неизвестная команда. Для помощи /help"
