@@ -17,24 +17,6 @@ import (
 var msg string   // Сообщение для отправки
 var ptext string // previous message - предыдущая полученная команда
 
-/*
-type fn func()
-
-func foo_login() {
-	log.Printf("foo! Message is login")
-}
-func foo_help() {
-	log.Printf("foo! Message is help")
-}
-func foo_calculator() {
-	log.Printf("foo! Message is calculator")
-}
-
-func bar(msg string) {
-	log.Printf("bar! Message is %s", msg)
-}
-*/
-
 func main() {
 	//Тесты подключения различных модулей + неудаление того, что пригодится
 	botStop := false
@@ -45,6 +27,10 @@ func main() {
 	tag := "menu"
 	var command string
 
+	err := sql.SqlCon()
+	if err != nil {
+		log.Panic(err)
+	}
 	// подключаемся к боту с помощью токена
 	bot, err := tgbotapi.NewBotAPI("1756611769:AAEHSoOCzhHmsU--r3fDPsCVYMvi5DKaDec")
 	if err != nil {
@@ -118,9 +104,9 @@ func main() {
 				addKb.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 			case tag == "login/pasteSQL":
 
-				_, err = sql.CreateUser("test", fmt.Sprintf("%v", ChatID), command)
+				_, err = sql.CreateUser("NameTest", "LastNameTest", command, ChatID)
 				if err != nil {
-					log.Fatal("Error creating Employee: ", err.Error())
+					log.Println("Error creating user: ", err.Error())
 				}
 				msg = "user created"
 				tag = "menu"
@@ -153,10 +139,13 @@ func main() {
 					botStop = true
 					msg = "Бот остановлен, бб"
 				case command == "/login":
-					//_, _, msg = sql.Login(fmt.Sprintf("%v", ChatID))
-					if msg == "Not exists" {
+					userExists, _ := sql.CheckUser(ChatID)
+					if userExists == 0 {
 						msg = "Необходим логин. Введите почту."
 						tag = "login/pasteSQL"
+					} else {
+						msg = "Пользователь существует"
+						tag = "menu"
 					}
 
 				default:
