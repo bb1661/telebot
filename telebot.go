@@ -16,8 +16,16 @@ import (
 
 var msg string   // Сообщение для отправки
 var ptext string // previous message - предыдущая полученная команда
+type Session struct {
+	CurrentTag     string
+	currentCommand string
+}
+
+var s map[int64]Session
 
 func main() {
+	s = make(map[int64]Session)
+
 	//Тесты подключения различных модулей + неудаление того, что пригодится
 	botStop := false
 	calc.Test()
@@ -49,6 +57,7 @@ func main() {
 		select {
 
 		case update := <-upd:
+
 			// Пользователь, который написал боту
 			UserName := update.Message.From.UserName
 			reply := ""
@@ -62,27 +71,25 @@ func main() {
 			// Текст сообщения
 			Text := update.Message.Text
 
-			/*
-				   paramStr := ""
-					f := map[string]fn{
-						"/login":      foo_login,
-						"/help":       foo_help,
-						"/calculator": foo_calculator,
-						"/calculator/addMarjin": calc.Marjin(),
-					}
-
-					f[Text]()
-
-			*/
+			//Проверка сессии
+			s[ChatID] = Session{ //CurrentTag currentCommand
+				"menu", "",
+			}
 
 			//Сборка команды с путем
 			log.Printf("[%s] %d %s", UserName, ChatID, Text)
 			addKb := tgbotapi.MessageConfig{}
 
 			if maps.CommandLeveling[command] {
-				command = command + " " + Text
+				_, err := updateCommand(ChatID, "menu", command+" "+Text)
+				if err != nil {
+					log.Fatal("Error updating command: ", err)
+				}
 			} else {
-				command = Text
+				_, err := updateCommand(ChatID, "menu", Text)
+				if err != nil {
+					log.Fatal("Error updating command: ", err)
+				}
 			}
 
 			//Вывод команды
@@ -92,7 +99,7 @@ func main() {
 			switch {
 			/*
 				добавить тэги и описать их
-				в первую очередь свитч должен проходить по маркам.
+				в первую очередь свитч должен проходить по тегам.
 
 			*/
 			case tag == "calc/needCalc":
@@ -358,4 +365,12 @@ func main_test_inlinekb() {
 			bot.Send(msg)
 		}
 	}
+}
+
+func updateCommand(chatid int64, tag string, command string) (int64, error) {
+	s[chatid] = Session{ //CurrentTag currentCommand
+		tag, command,
+	}
+
+	return 1, nil
 }
