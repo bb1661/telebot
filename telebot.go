@@ -68,7 +68,7 @@ func main() {
 			// Текст сообщения
 			Text := update.Message.Text
 
-			//Проверка сессии
+			//Поиск сессии пользователя
 			_, ok := s[ChatID]
 			if !ok {
 				s[ChatID] = &Session{ //CurrentTag currentCommand
