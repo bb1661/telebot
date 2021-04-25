@@ -5,6 +5,7 @@ import (
 	"log"
 	// "strconv"
 	// "strings"
+	"io/ioutil"
 	calc "telebot2/calcs"
 	kb "telebot2/keyboards"
 	maps "telebot2/maps"
@@ -12,6 +13,7 @@ import (
 	sql "telebot2/sql"
 
 	tgbotapi "github.com/Syfaro/telegram-bot-api"
+	yaml "gopkg.in/yaml.v3"
 )
 
 var msg string // Сообщение для отправки
@@ -20,10 +22,26 @@ type Session struct {
 	currentCommand string
 }
 
+type Config struct {
+	Token string `yaml:"token"`
+	DBURL string `yaml:"db_url"`
+}
+
 var s map[int64]*Session
 
 func main() {
 	s = make(map[int64]*Session)
+
+	//Config.yaml import
+	textfile, err := ioutil.ReadFile("config.yml")
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+	conf := Config{}
+	err3 := yaml.Unmarshal([]byte(textfile), &conf)
+	if err3 != nil {
+		log.Fatalf("error: %v", err)
+	}
 
 	//Тесты подключения различных модулей + неудаление того, что пригодится
 	botStop := false
@@ -32,12 +50,12 @@ func main() {
 	rp.Test()
 	maps.Test()
 
-	err := sql.SqlCon()
-	if err != nil {
+	err2 := sql.SqlCon()
+	if err2 != nil {
 		log.Panic(err)
 	}
 	// подключаемся к боту с помощью токена
-	bot, err := tgbotapi.NewBotAPI("1756611769:AAEHSoOCzhHmsU--r3fDPsCVYMvi5DKaDec")
+	bot, err := tgbotapi.NewBotAPI(conf.Token)
 	if err != nil {
 		log.Panic(err)
 	}
