@@ -13,17 +13,12 @@ import (
 )
 
 var db *sql.DB
-var server = "localhost"
-var port = 1434
-var user = `adm_test` // SORESHNIKOVPC\soreshnikov
-var password = "Qq1234567890"
-var database = "test_user"
 
 func Test() {
 	fmt.Println("Done")
 }
 
-func SqlCon() error {
+func SqlCon(server string, user string, password string, port int, database string) error {
 	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
 		server, user, password, port, database)
 

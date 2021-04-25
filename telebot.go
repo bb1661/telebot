@@ -24,7 +24,14 @@ type Session struct {
 
 type Config struct {
 	Token string `yaml:"token"`
-	DBURL string `yaml:"db_url"`
+	Db    struct {
+		DBURL    string `yaml:"dburl"`
+		Server   string `yaml:"server"`
+		Port     int    `yaml:"port"`
+		User     string `yaml:"user"`
+		Password string `yaml:"password"`
+		Database string `yaml:"database"`
+	}
 }
 
 var s map[int64]*Session
@@ -37,8 +44,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	conf := Config{}
-	err3 := yaml.Unmarshal([]byte(textfile), &conf)
+	config := Config{}
+	err3 := yaml.Unmarshal([]byte(textfile), &config)
 	if err3 != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -50,12 +57,18 @@ func main() {
 	rp.Test()
 	maps.Test()
 
-	err2 := sql.SqlCon()
+	err2 := sql.SqlCon(config.Db.Server,
+		config.Db.User,
+		config.Db.Password,
+		config.Db.Port,
+		config.Db.Database,
+	)
+
 	if err2 != nil {
 		log.Panic(err)
 	}
 	// подключаемся к боту с помощью токена
-	bot, err := tgbotapi.NewBotAPI(conf.Token)
+	bot, err := tgbotapi.NewBotAPI(config.Token)
 	if err != nil {
 		log.Panic(err)
 	}
